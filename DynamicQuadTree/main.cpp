@@ -23,6 +23,7 @@ struct particle
     
     vec2 p;
     float w;
+    int id;
     
     inline void print() const
     {
@@ -31,7 +32,7 @@ struct particle
     
 };
 
-float k = 100.0f;
+float k = 500.0f;
 float h = 3.0f;
 float h2 = h * h;
 
@@ -63,12 +64,30 @@ void simple_solve(particle* parts, int n) {
     }
 }
 
-void solve_part(particle* a, particle* b) {
+int u = 0;
+
+void solve_part1(particle* a, particle* b) {
     if(a == b) return;
-    solve_weight(a, b);
+    vec2 d = b->p - a->p;
+    if(d.magSq() <= h2) {
+        float w = weight(d);
+        a->w += w;
+        b->w += w;
+        ++u;
+    }
 }
 
-const int n = 1400;
+void solve_part2(particle* a, particle* b) {
+    if(a == b) return;
+    vec2 d = b->p - a->p;
+    if(d.magSq() <= h2) {
+        float w = weight(d);
+        a->w += w;
+        b->w += w;
+    }
+}
+
+const int n = 100000;
 
 inline float calc_ms(int i)
 {
@@ -78,8 +97,9 @@ inline float calc_ms(int i)
 int main(int argc, const char * argv[]) {
     srand((unsigned int)time(0));
     particle dots[n];
-
+    
     for(int i = 0; i < n; ++i) {
+        dots[i].id = i;
         dots[i].p = vec2(randFlt(-k * 0.5f, k * 0.5f), randFlt(-k * 0.5f, k * 0.5f));
     }
     
@@ -95,19 +115,20 @@ int main(int argc, const char * argv[]) {
     
     clocks.push_back(clock());
     
-    qt.solve(solve_part);
+    qt.solve(solve_part1);
     
     clocks.push_back(clock());
     
-    hg.solve(solve_part);
+    hg.solve(solve_part2);
     
     clocks.push_back(clock());
     
-    simple_solve(dots1, n);
+    if(n < 3000)
+        simple_solve(dots1, n);
     
     clocks.push_back(clock());
     
-    for(int i = 0; i < n; ++i) {
+    if(n < 2000) for(int i = 0; i < n; ++i) {
         float f = dots1[i].w - dots[i].w;
         printf("%.3f\n", f);
     }
@@ -117,6 +138,7 @@ int main(int argc, const char * argv[]) {
     printf("DynamicQuadTree: %.5f ms\n", calc_ms(0));
     printf("DynamicHashGrid: %.5f ms\n", calc_ms(1));
     printf("O(n^2): %.5f ms\n", calc_ms(2));
-
+    printf("%d collisions \n", u);
+    
     return 0;
 }

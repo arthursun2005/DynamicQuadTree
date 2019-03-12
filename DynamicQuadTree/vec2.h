@@ -58,6 +58,11 @@ inline float dot(const vec2& a, const vec2& b)
     return a.x * b.x + a.y * b.y;
 }
 
+inline float cross(const vec2& a, const vec2& b)
+{
+    return a.x * b.y - a.y * b.x;
+}
+
 inline vec2 min (const vec2& a, const vec2& b)
 {
     return vec2(std::min(a.x, b.x), std::min(a.y, b.y));

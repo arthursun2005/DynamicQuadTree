@@ -78,7 +78,7 @@ protected:
         
         inline void grow() {
             if(capacity == 0) {
-                capacity = 2;
+                capacity = 4;
                 data = (T**)malloc(sizeof(T*) * capacity);
             }else{
                 capacity <<= 1;
@@ -126,8 +126,6 @@ protected:
     
     qt_int level;
     
-    static const int initial_node_capacity = 1;
-    
 public:
     
     
@@ -140,9 +138,8 @@ public:
             nodes[i].children[2] = -1;
             nodes[i].children[3] = -1;
         }
-        nodes[0].size = rootSize;
+        expand_once();
     }
-    
     
     
     ~DynamicQuadTree() {
@@ -183,21 +180,14 @@ public:
         nodes[n2][1] = nodes[root][2];
         nodes[n3][0] = nodes[root][3];
         
-        nodes[n0].size = rootSize;
-        nodes[n1].size = rootSize;
-        nodes[n2].size = rootSize;
-        nodes[n3].size = rootSize;
-        
         nodes[root][0] = n0;
         nodes[root][1] = n1;
         nodes[root][2] = n2;
         nodes[root][3] = n3;
-        
+                
         rootSize *= 2.0f;
         ++level;
     }
-    
-    
     
     void grow_to(const vec2& p)
     {
@@ -206,74 +196,188 @@ public:
             expand_once();
     }
     
+    inline qt_int& get(qt_int i, uint8_t n) const
+    {
+        return nodes[i][n];
+    }
     
+    inline qt_int at(qt_int i, uint8_t n) const
+    {
+        if(i == -1) return -1;
+        return nodes[i][n];
+    }
     
     template <class _Solver>
-    void solve_node_complete(qt_int i, qt_int n, _Solver& solver, const vec2& k) {
-        if(nodes[i].size >= nodes[n].size) {
-            if(!nodes[n].m() && !nodes[i].m() && (nodes[i].world - nodes[n].world).magSq() <= h * h) {
-                solver(*nodes[i].data, *nodes[n].data);
+    inline void solve_single(qt_int n, _Solver& solver) {
+        qt_int& ct = nodes[n].count;
+        for(qt_int i = 0; i < ct; ++i) {
+            for(qt_int j = i; j < ct; ++j) {
+                solver(nodes[n].data[i], nodes[n].data[j]);
             }
-            
-            if(nodes[n].m() || nodes[i].m()) {
-                for(T*& p0 : nodes[i]) {
-                    for(T*& p1 : nodes[n]) {
-                        solver(p0, p1);
-                    }
-                }
-            }
-            
-        }
-        
-        float d = nodes[n].size * 0.25f;
-        
-        if(k.x <= h) {
-            if(k.y <= h && nodes[n][0] != -1)
-                solve_node_complete(i, nodes[n][0], solver, k + vec2(d, d));
-            
-            
-            if(k.y >= -h && nodes[n][2] != -1)
-                solve_node_complete(i, nodes[n][2], solver, k + vec2(d, -d));
-        }
-        
-        if(k.x >= -h) {
-            if(k.y <= h && nodes[n][1] != -1)
-                solve_node_complete(i, nodes[n][1], solver, k + vec2(-d, d));
-            
-            
-            if(k.y >= -h && nodes[n][3] != -1)
-                solve_node_complete(i, nodes[n][3], solver, k + vec2(-d, -d));
         }
     }
     
-    
-    
     template <class _Solver>
-    inline void solve_node(qt_int i, _Solver& solver) {
-        if(nodes[i].data)
-            solve_node_complete(i, nodes[i].p, solver, nodes[nodes[i].p].node_position);
-        
-        if(nodes[i][0] != -1)
-            solve_node(nodes[i][0], solver);
-        
-        if(nodes[i][1] != -1)
-            solve_node(nodes[i][1], solver);
-        
-        if(nodes[i][2] != -1)
-            solve_node(nodes[i][2], solver);
-        
-        if(nodes[i][3] != -1)
-            solve_node(nodes[i][3], solver);
-        
+    inline void solve_cells(qt_int n0, qt_int n1, _Solver& solver) {
+        for(T*& p0 : nodes[n0])
+            for(T*& p1 : nodes[n1])
+                solver(p0, p1);
     }
     
+    template <class _Solver>
+    void solve_level1(qt_int n0, qt_int n1, qt_int n2, qt_int n3, _Solver& solver) {
+        if(n0 != -1) {
+            solve_single(n0, solver);
+            if(n1 != -1) solve_cells(n0, n1, solver);
+            if(n2 != -1) solve_cells(n0, n2, solver);
+            if(n3 != -1) solve_cells(n0, n3, solver);
+        }
+        
+        if(n1 != -1) {
+            solve_single(n1, solver);
+            if(n2 != -1) solve_cells(n1, n2, solver);
+            if(n3 != -1) solve_cells(n1, n3, solver);
+        }
+        
+        if(n2 != -1) {
+            solve_single(n2, solver);
+            if(n3 != -1) solve_cells(n2, n3, solver);
+        }
+        
+        if(n3 != -1) {
+            solve_single(n3, solver);
+        }
+    }
+    
+    template <class _Solver>
+    void solve_level1_v(qt_int n0, qt_int n1, qt_int n2, qt_int n3, _Solver& solver) {
+        if(n0 != -1 && n2 != -1)
+            solve_cells(n0, n2, solver);
+        
+        if(n1 != -1 && n3 != -1)
+            solve_cells(n1, n3, solver);
+    }
+    
+    template <class _Solver>
+    void solve_level1_h(qt_int n0, qt_int n1, qt_int n2, qt_int n3, _Solver& solver) {
+        if(n0 != -1 && n1 != -1)
+            solve_cells(n0, n1, solver);
+        
+        if(n2 != -1 && n3 != -1)
+            solve_cells(n2, n3, solver);
+    }
+    
+    template <class _Solver>
+    void solve_level1_c(qt_int n0, qt_int n1, qt_int n2, qt_int n3, _Solver& solver) {
+        if(n0 != -1 && n3 != -1)
+            solve_cells(n0, n3, solver);
+        
+        if(n1 != -1 && n2 != -1)
+            solve_cells(n1, n2, solver);
+    }
+    
+    template <class _Solver>
+    void solve_node_v(qt_int n0, qt_int n1, qt_int n2, qt_int n3, qt_int l, _Solver& solver) {
+        if(l == 0) {
+            printf("Unexpected result. \n");
+            return;
+        }
+        
+        if(l == 1) {
+            solve_level1_v(n0, n1, n2, n3, solver);
+            solve_level1_c(n0, n1, n2, n3, solver);
+            return;
+        }
+        
+        if(n0 != -1 && n2 != -1)
+            solve_node_v(get(n0, 2), get(n0, 3), get(n2, 0), get(n2, 1), l - 1, solver);
+        
+        if(n1 != -1 && n3 != -1)
+            solve_node_v(get(n1, 2), get(n1, 3), get(n3, 0), get(n3, 1), l - 1, solver);
+    }
+    
+    template <class _Solver>
+    void solve_node_h(qt_int n0, qt_int n1, qt_int n2, qt_int n3, qt_int l, _Solver& solver) {
+        if(l == 0) {
+            printf("Unexpected result. \n");
+            return;
+        }
+        
+        if(l == 1) {
+            solve_level1_h(n0, n1, n2, n3, solver);
+            solve_level1_c(n0, n1, n2, n3, solver);
+            return;
+        }
+        
+        if(n0 != -1 && n1 != -1)
+            solve_node_h(get(n0, 1), get(n1, 0), get(n0, 3), get(n1, 2), l - 1, solver);
+        
+        if(n2 != -1 && n3 != -1)
+            solve_node_h(get(n2, 1), get(n3, 0), get(n2, 3), get(n3, 2), l - 1, solver);
+    }
+    
+    template <class _Solver>
+    void solve_node_c(qt_int n0, qt_int n1, qt_int n2, qt_int n3, qt_int l, _Solver& solver) {
+        if(l == 0) {
+            printf("Unexpected result. \n");
+            return;
+        }
+        
+        if(l == 1) {
+            solve_level1_c(n0, n1, n2, n3, solver);
+            return;
+        }
+        
+        if((n0 != -1 && n3 != -1) || (n1 != -1 && n2 != -1))
+            solve_node_c(at(n0, 3), at(n1, 2), at(n2, 1), at(n3, 0), l - 1, solver);
+    }
+    
+    template <class _Solver>
+    void solve_node(qt_int n0, qt_int n1, qt_int n2, qt_int n3, qt_int l, _Solver& solver) {
+        if(l == 0) {
+            solve_cells(root, root, solver);
+            return;
+        }
+        
+        if(l == 1) {
+            solve_level1(n0, n1, n2, n3, solver);
+            return;
+        }
+        
+        if(n0 != -1) {
+            solve_node(nodes[n0][0], nodes[n0][1], nodes[n0][2], nodes[n0][3], l - 1, solver);
+            
+            if(n1 != -1)
+                solve_node_h(nodes[n0][1], nodes[n1][0], nodes[n0][3], nodes[n1][2], l - 1, solver);
+            
+            if(n2 != -1)
+                solve_node_v(nodes[n0][2], nodes[n0][3], nodes[n2][0], nodes[n2][1], l - 1, solver);
+        }
+        
+        if(n1 != -1)
+            solve_node(nodes[n1][0], nodes[n1][1], nodes[n1][2], nodes[n1][3], l - 1, solver);
+        
+        if(n2 != -1)
+            solve_node(nodes[n2][0], nodes[n2][1], nodes[n2][2], nodes[n2][3], l - 1, solver);
+        
+        if(n3 != -1) {
+            solve_node(nodes[n3][0], nodes[n3][1], nodes[n3][2], nodes[n3][3], l - 1, solver);
+            
+            if(n1 != -1)
+                solve_node_v(nodes[n1][2], nodes[n1][3], nodes[n3][0], nodes[n3][1], l - 1, solver);
+            
+            if(n2 != -1)
+                solve_node_h(nodes[n2][1], nodes[n3][0], nodes[n2][3], nodes[n3][2], l - 1, solver);
+        }
+        
+        if((n0 != -1 && n3 != -1) || (n1 != -1 && n2 != -1))
+            solve_node_c(at(n0, 3), at(n1, 2), at(n2, 1), at(n3, 0), l - 1, solver);
+    }
     
     template <class _Solver>
     void solve(_Solver solver) {
-        if(nodes[root].data == 0) return;
-        solve_node(root, solver);
+        solve_node(nodes[root][0], nodes[root][1], nodes[root][2], nodes[root][3], level, solver);
     }
-    
     
     
     inline void alloc_child(qt_int i, qt_int c) {
@@ -282,20 +386,16 @@ public:
     }
     
     
-    
     void insert_pointer(T* ptr, const vec2& p) {
         grow_to(p);
         qt_int i = root;
         float d = rootSize * 0.5f;
-        vec2 n, b;
-        qt_int w = i;
+        vec2 n = p;
         for(int _n = 0; _n < level; ++_n) {
             d *= 0.5f;
             
-            b = p + n;
-            
-            if(b.x >= 0.0) {
-                if(b.y >= 0.0) {
+            if(n.x >= 0.0f) {
+                if(n.y >= 0.0f) {
                     alloc_child(i, 3);
                     i = nodes[i][3];
                     
@@ -309,7 +409,7 @@ public:
                     n.y += d;
                 }
             }else{
-                if(b.y >= 0.0) {
+                if(n.y >= 0.0f) {
                     alloc_child(i, 2);
                     i = nodes[i][2];
                     
@@ -326,11 +426,6 @@ public:
         }
         
         nodes[i].add(ptr);
-        if(nodes[i].count > 1) {
-            nodes[i].node.add(b);
-        }else{
-            nodes[i].node.set(b);
-        }
     }
 };
 
