@@ -59,10 +59,8 @@ public:
     
     template <class _Solver>
     void solve(_Solver solver) {
-        static const int nk = 16;
+        static const int nk = 12;
         static const int k[nk] = {
-            0, -1,
-            1, -1,
             -1, 0,
             0, 0,
             1, 0,
@@ -81,10 +79,10 @@ public:
                 std::vector<int>* cell = grid[hash%N];
                 if(cell == 0) continue;
                 for(int& j : *cell) {
+                    if(j >= data.size()) break;
                     vec2& e = data[j].p;
-                    if((e.x <= x.p.x && e.y <= x.p.y)) continue;
-                    if((e - x.p).magSq() <= h * h)
-                        solver(x.data, data[j].data);
+                    if(e.y < x.p.y || (e.y <= x.p.y && e.x <= x.p.x)) continue;
+                    solver(x.data, data[j].data);
                 }
             }
         }
@@ -93,12 +91,16 @@ public:
     
     void insert_pointer(T* ptr, const vec2& p)
     {
+        
         size_t hash = hasher(p.x/h, p.y/h);
+        
         std::vector<int>*& k = grid[hash%N];
+        
         if(k == 0)
             k = new std::vector<int>;
         
         k->push_back((int)data.size());
+        
         data.push_back(Node(ptr, p));
     }
 };

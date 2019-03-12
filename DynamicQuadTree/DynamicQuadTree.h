@@ -141,14 +141,12 @@ public:
         expand_once();
     }
     
-    
     ~DynamicQuadTree() {
         for (qt_int i = 0; i < capacity; ++i)
             nodes[i].free();
         
         free(nodes);
     }
-    
     
     
     qt_int alloc_node() {
@@ -208,7 +206,7 @@ public:
     }
     
     template <class _Solver>
-    inline void solve_single(qt_int n, _Solver& solver) {
+    void solve_single(qt_int n, _Solver& solver) {
         qt_int& ct = nodes[n].count;
         for(qt_int i = 0; i < ct; ++i) {
             for(qt_int j = i; j < ct; ++j) {
@@ -218,7 +216,7 @@ public:
     }
     
     template <class _Solver>
-    inline void solve_cells(qt_int n0, qt_int n1, _Solver& solver) {
+    void solve_cells(qt_int n0, qt_int n1, _Solver& solver) {
         for(T*& p0 : nodes[n0])
             for(T*& p1 : nodes[n1])
                 solver(p0, p1);

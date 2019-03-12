@@ -32,7 +32,7 @@ struct particle
     
 };
 
-float k = 500.0f;
+float k = 3000.0f;
 float h = 3.0f;
 float h2 = h * h;
 
@@ -96,15 +96,19 @@ inline float calc_ms(int i)
 
 int main(int argc, const char * argv[]) {
     srand((unsigned int)time(0));
-    particle dots[n];
+    particle *dots;
+    particle *dots1;
+    particle *dots2;
+    
+    dots = (particle*)malloc(sizeof(particle) * n);
+    dots1 = (particle*)malloc(sizeof(particle) * n);
+    dots2 = (particle*)malloc(sizeof(particle) * n);
     
     for(int i = 0; i < n; ++i) {
         dots[i].id = i;
         dots[i].p = vec2(randFlt(-k * 0.5f, k * 0.5f), randFlt(-k * 0.5f, k * 0.5f));
     }
     
-    particle dots1[n];
-    particle dots2[n];
     memcpy(dots1, dots, sizeof(particle) * n);
     memcpy(dots2, dots, sizeof(particle) * n);
     
@@ -129,7 +133,7 @@ int main(int argc, const char * argv[]) {
     clocks.push_back(clock());
     
     if(n < 2000) for(int i = 0; i < n; ++i) {
-        float f = dots1[i].w - dots[i].w;
+        float f = dots1[i].w - dots2[i].w;
         printf("%.3f\n", f);
     }
     
@@ -139,6 +143,10 @@ int main(int argc, const char * argv[]) {
     printf("DynamicHashGrid: %.5f ms\n", calc_ms(1));
     printf("O(n^2): %.5f ms\n", calc_ms(2));
     printf("%d collisions \n", u);
+    
+    free(dots);
+    free(dots1);
+    free(dots2);
     
     return 0;
 }
