@@ -23,7 +23,6 @@ struct particle
     
     vec2 p;
     float w;
-    int id;
     
     inline void print() const
     {
@@ -32,7 +31,7 @@ struct particle
     
 };
 
-float k = 3000.0f;
+float k = 1000.0f;
 float h = 3.0f;
 float h2 = h * h;
 
@@ -44,27 +43,25 @@ inline float weight(const vec2& d) {
     return u * u * u;
 }
 
-inline void solve_weight(particle* a, particle* b)
-{
-    vec2 d = b->p - a->p;
-    if(d.magSq() <= h2) {
-        float w = weight(d);
-        a->w += w;
-        b->w += w;
-    }
-}
+int u1 = 0;
+int u2 = 0;
 
 void simple_solve(particle* parts, int n) {
     for(int i = 0; i < n; ++i) {
         for(int j = i + 1; j < n; ++j) {
             particle* a = parts + i;
             particle* b = parts + j;
-            solve_weight(a, b);
+            vec2 d = b->p - a->p;
+            if(d.magSq() <= h2) {
+                float w = weight(d);
+                a->w += w;
+                b->w += w;
+            }
         }
     }
 }
 
-int u = 0;
+
 
 void solve_part1(particle* a, particle* b) {
     if(a == b) return;
@@ -72,8 +69,8 @@ void solve_part1(particle* a, particle* b) {
     if(d.magSq() <= h2) {
         float w = weight(d);
         a->w += w;
-        b->w += w;
-        ++u;
+        //b->w += w;
+        ++u1;
     }
 }
 
@@ -84,10 +81,11 @@ void solve_part2(particle* a, particle* b) {
         float w = weight(d);
         a->w += w;
         b->w += w;
+        ++u2;
     }
 }
 
-const int n = 100000;
+const int n = 10000;
 
 inline float calc_ms(int i)
 {
@@ -104,8 +102,10 @@ int main(int argc, const char * argv[]) {
     dots1 = (particle*)malloc(sizeof(particle) * n);
     dots2 = (particle*)malloc(sizeof(particle) * n);
     
-    for(int i = 0; i < n; ++i) {
-        dots[i].id = i;
+    dots[0].p.set(0.0f, 0.0f);
+    dots[1].p.set(0.0f, 0.5f);
+    
+    for(int i = 2; i < n; ++i) {
         dots[i].p = vec2(randFlt(-k * 0.5f, k * 0.5f), randFlt(-k * 0.5f, k * 0.5f));
     }
     
@@ -132,17 +132,18 @@ int main(int argc, const char * argv[]) {
     
     clocks.push_back(clock());
     
-    if(n < 2000) for(int i = 0; i < n; ++i) {
-        float f = dots1[i].w - dots2[i].w;
-        printf("%.3f\n", f);
+    if(n < 2000) {
+        for(int i = 0; i < n; ++i) {
+            float f = dots1[i].w - dots[i].w;
+            if(f != 0.0f)
+                printf("%.5f\n", f);
+        }
+        printf("\n");
     }
-    
-    printf("\n");
     
     printf("DynamicQuadTree: %.5f ms\n", calc_ms(0));
     printf("DynamicHashGrid: %.5f ms\n", calc_ms(1));
-    printf("O(n^2): %.5f ms\n", calc_ms(2));
-    printf("%d collisions \n", u);
+    printf("%d, %d collisions \n", u1, u2);
     
     free(dots);
     free(dots1);

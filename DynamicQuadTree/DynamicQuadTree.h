@@ -76,6 +76,10 @@ protected:
                 ::free(data);
         }
         
+        inline void clear() {
+            count = 0;
+        }
+        
         inline void grow() {
             if(capacity == 0) {
                 capacity = 4;
@@ -165,7 +169,20 @@ public:
         return size++;
     }
     
-    
+    void delete_last(qt_int n) {
+        if(n <= size) {
+            for (qt_int i = 1; i <= n; ++i) {
+                nodes[size - i].clear();
+                nodes[size - i].children[0] = -1;
+                nodes[size - i].children[1] = -1;
+                nodes[size - i].children[2] = -1;
+                nodes[size - i].children[3] = -1;
+            }
+            size -= n;
+        }else{
+            printf("Unexpected\n");
+        }
+    }
     
     void expand_once() {
         qt_int n0 = alloc_node();
@@ -182,19 +199,19 @@ public:
         nodes[root][1] = n1;
         nodes[root][2] = n2;
         nodes[root][3] = n3;
-                
+        
         rootSize *= 2.0f;
         ++level;
     }
     
     void grow_to(const vec2& p)
     {
-        float pSize = std::max(abs(p.x), abs(p.y)) * 2.0f;
+        float pSize = std::max(abs(p.x), abs(p.y)) * 4.0f;
         while(rootSize < pSize)
             expand_once();
     }
     
-    inline qt_int& get(qt_int i, uint8_t n) const
+    inline qt_int& get(qt_int i, uint8_t n)
     {
         return nodes[i][n];
     }
@@ -203,6 +220,11 @@ public:
     {
         if(i == -1) return -1;
         return nodes[i][n];
+    }
+    
+    inline qt_int at(qt_int i, uint8_t n, uint8_t k) const
+    {
+        return at(at(i, n), k);
     }
     
     template <class _Solver>
@@ -220,6 +242,184 @@ public:
         for(T*& p0 : nodes[n0])
             for(T*& p1 : nodes[n1])
                 solver(p0, p1);
+    }
+    
+    template <class _Solver>
+    void solve_cells(qt_int n0, const std::initializer_list<qt_int>& l, _Solver& solver) {
+        if(n0 != -1)
+            for(T*& p0 : nodes[n0])
+                for(const qt_int& n1 : l)
+                    if(n1 != -1)
+                        for(T*& p1 : nodes[n1])
+                            solver(p0, p1);
+    }
+    
+    void assign_c(qt_int n, qt_int n0, qt_int n1, qt_int n2, qt_int n3) {
+        nodes[n][0] = at(n0, 3);
+        nodes[n][1] = at(n1, 2);
+        nodes[n][2] = at(n2, 1);
+        nodes[n][3] = at(n3, 0);
+    }
+    
+    void assign_h2(qt_int n, qt_int n0, qt_int n1) {
+        nodes[n][0] = at(n0, 1, 3);
+        nodes[n][1] = at(n1, 0, 2);
+        nodes[n][2] = at(n0, 3, 1);
+        nodes[n][3] = at(n1, 2, 0);
+    }
+    
+    void assign_v2(qt_int n, qt_int n0, qt_int n2) {
+        nodes[n][0] = at(n0, 2, 3);
+        nodes[n][1] = at(n0, 3, 2);
+        nodes[n][2] = at(n2, 0, 1);
+        nodes[n][3] = at(n2, 1, 0);
+    }
+    
+    void assign_c2(qt_int n, qt_int n0, qt_int n1, qt_int n2, qt_int n3) {
+        nodes[n][0] = at(n0, 3, 3);
+        nodes[n][1] = at(n1, 2, 2);
+        nodes[n][2] = at(n2, 1, 1);
+        nodes[n][3] = at(n3, 0, 0);
+    }
+    
+    template <class _Solver>
+    void solve_level142(qt_int n0, qt_int n1, qt_int n2, qt_int n3, _Solver& solver) {
+        if(n0 != -1) {
+            solve_cells(n0, n0, solver);
+            if(n1 != -1) solve_cells(n0, n1, solver);
+            if(n2 != -1) solve_cells(n0, n2, solver);
+            if(n3 != -1) solve_cells(n0, n3, solver);
+        }
+        
+        if(n1 != -1) {
+            solve_cells(n1, n1, solver);
+            if(n0 != -1) solve_cells(n1, n0, solver);
+            if(n2 != -1) solve_cells(n1, n2, solver);
+            if(n3 != -1) solve_cells(n1, n3, solver);
+        }
+        
+        if(n2 != -1) {
+            solve_cells(n2, n2, solver);
+            if(n0 != -1) solve_cells(n2, n0, solver);
+            if(n1 != -1) solve_cells(n2, n1, solver);
+            if(n3 != -1) solve_cells(n2, n3, solver);
+        }
+        
+        if(n3 != -1) {
+            solve_cells(n3, n3, solver);
+            if(n0 != -1) solve_cells(n3, n0, solver);
+            if(n1 != -1) solve_cells(n3, n1, solver);
+            if(n2 != -1) solve_cells(n3, n2, solver);
+        }
+    }
+    
+    template <class _Solver>
+    void solve_level2(qt_int n0, qt_int n1, qt_int n2, qt_int n3, _Solver& solver) {
+        solve_level142(at(n0, 3), at(n1, 2), at(n2, 1), at(n3, 0), solver);
+        solve_cells(at(n0, 3), {at(n0, 0), at(n0, 1), at(n0, 2), at(n1, 0), at(n2, 0)}, solver);
+        solve_cells(at(n1, 2), {at(n1, 0), at(n1, 1), at(n1, 3), at(n0, 1), at(n3, 1)}, solver);
+        solve_cells(at(n2, 1), {at(n2, 0), at(n2, 2), at(n2, 3), at(n0, 2), at(n3, 2)}, solver);
+        solve_cells(at(n3, 0), {at(n3, 1), at(n3, 2), at(n3, 3), at(n1, 3), at(n2, 3)}, solver);
+    }
+    
+    bool empty_center(qt_int n0, qt_int n1, qt_int n2, qt_int n3) {
+        if(at(n0, 3) == -1 && at(n1, 2) == -1 && at(n2, 1) == -1 && at(n3, 0) == -1) {
+            return true;
+        }
+        return false;
+    }
+    
+    template <class _Solver>
+    void solve_center(qt_int n0, qt_int n1, qt_int n2, qt_int n3, qt_int l, _Solver& solver) {
+        if(l == 1) {
+            solve_level1(n0, n1, n2, n3, solver);
+            return;
+        }
+        
+        if(l == 2) {
+            solve_level2(n0, n1, n2, n3, solver);
+            return;
+        }
+        
+        qt_int nn = 0;
+        
+        qt_int n00 = -1;
+        qt_int n01 = -1;
+        qt_int n02 = -1;
+        qt_int n10 = -1;
+        qt_int n11 = -1;
+        qt_int n12 = -1;
+        qt_int n20 = -1;
+        qt_int n21 = -1;
+        qt_int n22 = -1;
+        
+        if(n0 != -1) {
+            n00 = alloc_node();
+            assign_c(n00, get(n0, 0), get(n0, 1), get(n0, 2), get(n0, 3));
+            ++nn;
+        }
+        
+        if(n1 != -1) {
+            n02 = alloc_node();
+            assign_c(n02, get(n1, 0), get(n1, 1), get(n1, 2), get(n1, 3));
+            ++nn;
+        }
+        
+        if(n2 != -1) {
+            n20 = alloc_node();
+            assign_c(n20, get(n2, 0), get(n2, 1), get(n2, 2), get(n2, 3));
+            ++nn;
+        }
+        
+        if(n3 != -1) {
+            n22 = alloc_node();
+            assign_c(n22, get(n3, 0), get(n3, 1), get(n3, 2), get(n3, 3));
+            ++nn;
+        }
+        
+        if(n0 != -1 && n1 != -1) {
+            n01 = alloc_node();
+            assign_h2(n01, n0, n1);
+            ++nn;
+        }
+        
+        if(n2 != -1 && n3 != -1) {
+            n21 = alloc_node();
+            assign_h2(n21, n2, n3);
+            ++nn;
+        }
+        
+        if(n0 != -1 && n2 != -1) {
+            n10 = alloc_node();
+            assign_v2(n10, n0, n2);
+            ++nn;
+        }
+        
+        if(n1 != -1 && n3 != -1) {
+            n12 = alloc_node();
+            assign_v2(n12, n1, n3);
+            ++nn;
+        }
+        
+        if(n0 != -1 && n2 != -1 && n1 != -1 && n3 != -1) {
+            n11 = alloc_node();
+            assign_c2(n11, n0, n1, n2, n3);
+            ++nn;
+        }
+        
+        if(!empty_center(n00, n01, n10, n11))
+            solve_center(n00, n01, n10, n11, l - 1, solver);
+        
+        if(!empty_center(n01, n02, n11, n12))
+            solve_center(n01, n02, n11, n12, l - 1, solver);
+        
+        if(!empty_center(n10, n11, n20, n21))
+            solve_center(n10, n11, n20, n21, l - 1, solver);
+        
+        //if(!empty_center(n11, n12, n21, n22))
+            //solve_center(n11, n12, n21, n22, l - 1, solver);
+        
+        delete_last(nn);
     }
     
     template <class _Solver>
@@ -331,6 +531,42 @@ public:
     }
     
     template <class _Solver>
+    void link_h(qt_int n0, qt_int n1, qt_int l, _Solver& solver) {
+        if(l < 2) {
+            // doesn't need linking
+            return;
+        }
+        
+        if(l == 2) {
+            solve_node_c(at(n0, 1, 3), at(n1, 0, 2), at(n0, 3, 1), at(n1, 2, 0), l - 1, solver);
+            return;
+        }
+        
+        if(n0 != -1 && n1 != -1) {
+            link_h(get(n0, 1), get(n1, 0), l - 1, solver);
+            link_h(get(n0, 3), get(n1, 2), l - 1, solver);
+        }
+    }
+    
+    template <class _Solver>
+    void link_v(qt_int n0, qt_int n2, qt_int l, _Solver& solver) {
+        if(l < 2) {
+            // doesn't need linking
+            return;
+        }
+        
+        if(l == 2) {
+            solve_node_c(at(n0, 2, 3), at(n0, 3, 2), at(n2, 0, 1), at(n2, 1, 0), l - 1, solver);
+            return;
+        }
+        
+        if(n0 != -1 && n2 != -1) {
+            link_h(get(n0, 2), get(n2, 0), l - 1, solver);
+            link_h(get(n0, 3), get(n2, 1), l - 1, solver);
+        }
+    }
+    
+    template <class _Solver>
     void solve_node(qt_int n0, qt_int n1, qt_int n2, qt_int n3, qt_int l, _Solver& solver) {
         if(l == 0) {
             solve_cells(root, root, solver);
@@ -348,8 +584,14 @@ public:
             if(n1 != -1)
                 solve_node_h(nodes[n0][1], nodes[n1][0], nodes[n0][3], nodes[n1][2], l - 1, solver);
             
+            link_h(n0, n1, l - 1, solver);
+            
+            
             if(n2 != -1)
                 solve_node_v(nodes[n0][2], nodes[n0][3], nodes[n2][0], nodes[n2][1], l - 1, solver);
+                
+            link_v(n0, n2, l - 1, solver);
+            
         }
         
         if(n1 != -1)
@@ -364,8 +606,12 @@ public:
             if(n1 != -1)
                 solve_node_v(nodes[n1][2], nodes[n1][3], nodes[n3][0], nodes[n3][1], l - 1, solver);
             
+            link_v(n1, n3, l - 1, solver);
+            
             if(n2 != -1)
                 solve_node_h(nodes[n2][1], nodes[n3][0], nodes[n2][3], nodes[n3][2], l - 1, solver);
+            
+            link_h(n2, n3, l - 1, solver);
         }
         
         if((n0 != -1 && n3 != -1) || (n1 != -1 && n2 != -1))
@@ -373,8 +619,9 @@ public:
     }
     
     template <class _Solver>
-    void solve(_Solver solver) {
-        solve_node(nodes[root][0], nodes[root][1], nodes[root][2], nodes[root][3], level, solver);
+    inline void solve(_Solver solver) {
+        //solve_node(at(root, 0), at(root, 1), at(root, 2), at(root, 3), level, solver);
+        solve_center(at(root, 0), at(root, 1), at(root, 2), at(root, 3), level, solver);
     }
     
     

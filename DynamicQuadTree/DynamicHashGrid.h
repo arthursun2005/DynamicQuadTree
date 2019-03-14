@@ -81,8 +81,9 @@ public:
                 for(int& j : *cell) {
                     if(j >= data.size()) break;
                     vec2& e = data[j].p;
-                    if(e.y < x.p.y || (e.y <= x.p.y && e.x <= x.p.x)) continue;
-                    solver(x.data, data[j].data);
+                    if(e.y > x.p.y || (e.y >= x.p.y && e.x < x.p.x)) {
+                        solver(x.data, data[j].data);
+                    }
                 }
             }
         }
