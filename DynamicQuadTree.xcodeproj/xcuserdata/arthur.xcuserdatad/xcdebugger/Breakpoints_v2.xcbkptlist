@@ -10,7 +10,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "DynamicQuadTree/DynamicQuadTree.h"
-            timestampString = "574252167.9305969"
+            timestampString = "574375165.030792"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "173"
@@ -26,39 +26,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "DynamicQuadTree/DynamicQuadTree.h"
-            timestampString = "574252167.931018"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "485"
-            endingLineNumber = "485"
-            landmarkName = "solve_node_v(qt_int n0, qt_int n1, qt_int n2, qt_int n3, qt_int l, _Solver&amp; solver)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "DynamicQuadTree/DynamicQuadTree.h"
-            timestampString = "574252167.9313411"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "432"
-            endingLineNumber = "432"
-            landmarkName = "solve_level1(qt_int n0, qt_int n1, qt_int n2, qt_int n3, _Solver&amp; solver)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "DynamicQuadTree/DynamicQuadTree.h"
-            timestampString = "574252167.931669"
+            timestampString = "574375165.03167"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "228"
@@ -74,27 +42,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "DynamicQuadTree/DynamicQuadTree.h"
-            timestampString = "574252167.931976"
+            timestampString = "574375165.032248"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "488"
-            endingLineNumber = "488"
-            landmarkName = "solve_node_v(qt_int n0, qt_int n1, qt_int n2, qt_int n3, qt_int l, _Solver&amp; solver)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "DynamicQuadTree/DynamicQuadTree.h"
-            timestampString = "574252167.9324059"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "346"
-            endingLineNumber = "346"
+            startingLineNumber = "320"
+            endingLineNumber = "320"
             landmarkName = "solve_center(qt_int n0, qt_int n1, qt_int n2, qt_int n3, qt_int l, _Solver&amp; solver)"
             landmarkType = "7">
          </BreakpointContent>
@@ -106,11 +58,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "DynamicQuadTree/DynamicQuadTree.h"
-            timestampString = "574252167.932691"
+            timestampString = "574375165.0325969"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "335"
-            endingLineNumber = "335"
+            startingLineNumber = "311"
+            endingLineNumber = "311"
             landmarkName = "solve_center(qt_int n0, qt_int n1, qt_int n2, qt_int n3, qt_int l, _Solver&amp; solver)"
             landmarkType = "7">
          </BreakpointContent>

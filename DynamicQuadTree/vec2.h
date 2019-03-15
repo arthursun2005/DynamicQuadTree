@@ -49,7 +49,7 @@ struct vec2
     
     inline void print() const
     {
-        printf("%6.3f, %6.3f \n", x, y);
+        printf("%.3f, %.3f \n", x, y);
     }
 };
 

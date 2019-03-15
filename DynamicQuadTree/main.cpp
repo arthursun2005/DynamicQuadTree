@@ -69,7 +69,7 @@ void solve_part1(particle* a, particle* b) {
     if(d.magSq() <= h2) {
         float w = weight(d);
         a->w += w;
-        //b->w += w;
+        b->w += w;
         ++u1;
     }
 }
@@ -85,7 +85,7 @@ void solve_part2(particle* a, particle* b) {
     }
 }
 
-const int n = 10000;
+const int n = 100000;
 
 inline float calc_ms(int i)
 {
@@ -105,9 +105,14 @@ int main(int argc, const char * argv[]) {
     dots[0].p.set(0.0f, 0.0f);
     dots[1].p.set(0.0f, 0.5f);
     
-    for(int i = 2; i < n; ++i) {
+    vec2 sum;
+    for(int i = 0; i < n; ++i) {
         dots[i].p = vec2(randFlt(-k * 0.5f, k * 0.5f), randFlt(-k * 0.5f, k * 0.5f));
+        sum += dots[i].p;
     }
+    
+    sum *= 1.0f/(float)n;
+    sum.print();
     
     memcpy(dots1, dots, sizeof(particle) * n);
     memcpy(dots2, dots, sizeof(particle) * n);
