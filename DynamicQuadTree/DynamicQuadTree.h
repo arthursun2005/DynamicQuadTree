@@ -40,6 +40,7 @@ struct AABB
         lowerBound = min(lowerBound, aabb.lowerBound);
         upperBound = max(upperBound, aabb.upperBound);
     }
+    
 };
 
 template <class T>
@@ -59,6 +60,8 @@ protected:
         
         qt_int count;
         qt_int capacity;
+        
+        AABB aabb;
         
         Node() {}
         
@@ -95,6 +98,14 @@ protected:
             if(count >= capacity)
                 grow();
             data[count++] = ptr;
+        }
+        
+        inline void add(const vec2& p)
+        {
+            if(count == 0)
+                aabb.set(p);
+            else
+                aabb.add(p);
         }
         
         inline T** begin()
@@ -180,7 +191,7 @@ public:
             }
             size -= n;
         }else{
-            printf("Unexpected\n");
+            printf("Unexpected delete_last \n");
         }
     }
     
@@ -283,10 +294,14 @@ public:
     }
     
     template <class _Solver>
-    void solve_level2(qt_int n0, qt_int n1, qt_int n2, qt_int n3, _Solver& solver) {
+    void solve_level2(qt_int n0, qt_int n1, qt_int n2, qt_int n3, _Solver& solver)
+    {
         solve_cells(at(n0, 3), {at(n0, 0), at(n0, 1), at(n0, 2), at(n1, 0)}, solver);
+        
         solve_cells(at(n1, 2), {at(n0, 1), at(n1, 0), at(n0, 3), at(n1, 1)}, solver);
+        
         solve_cells(at(n2, 1), {at(n0, 2), at(n0, 3), at(n2, 0), at(n1, 2)}, solver);
+        
         solve_cells(at(n3, 0), {at(n0, 3), at(n1, 2), at(n2, 1), at(n1, 3)}, solver);
         
         if(at(n0, 3) != -1) solve_single(get(n0, 3), solver);
@@ -316,7 +331,7 @@ public:
             solve_level2(n0, n1, n2, n3, solver);
             return;
         }
-        
+
         qt_int n00 = alloc_node();
         qt_int n01 = alloc_node();
         qt_int n02 = alloc_node();
@@ -327,55 +342,70 @@ public:
         qt_int n21 = alloc_node();
         qt_int n22 = alloc_node();
         
-        if(n0 != -1) {
+        if(n0 != -1)
             assign_c(n00, get(n0, 0), get(n0, 1), get(n0, 2), get(n0, 3));
-        }
         
-        if(n1 != -1) {
+        
+        if(n1 != -1)
             assign_c(n02, get(n1, 0), get(n1, 1), get(n1, 2), get(n1, 3));
-        }
         
-        if(n2 != -1) {
+        
+        if(n2 != -1)
             assign_c(n20, get(n2, 0), get(n2, 1), get(n2, 2), get(n2, 3));
-        }
         
-        if(n3 != -1) {
+        
+        if(n3 != -1)
             assign_c(n22, get(n3, 0), get(n3, 1), get(n3, 2), get(n3, 3));
-        }
         
-        if(n0 != -1 && n1 != -1) {
-            assign_h2(n01, n0, n1);
-        }
         
-        if(n2 != -1 && n3 != -1) {
-            assign_h2(n21, n2, n3);
-        }
+        assign_h2(n21, n2, n3);
         
-        if(n0 != -1 && n2 != -1) {
-            assign_v2(n10, n0, n2);
-        }
+        assign_h2(n01, n0, n1);
         
-        if(n1 != -1 && n3 != -1) {
-            assign_v2(n12, n1, n3);
-        }
+        assign_v2(n12, n1, n3);
         
-        if(n0 != -1 && n2 != -1 && n1 != -1 && n3 != -1) {
-            assign_c2(n11, n0, n1, n2, n3);
-        }
+        assign_v2(n10, n0, n2);
         
-        if(!empty_center(n00, n01, n10, n11))
+        assign_c2(n11, n0, n1, n2, n3);
+        
+        if(at(n0, 3) != -1)
             solve_center(n00, n01, n10, n11, l - 1, solver);
         
-        if(!empty_center(n01, n02, n11, n12))
+        if(at(n1, 2) != -1)
             solve_center(n01, n02, n11, n12, l - 1, solver);
         
-        if(!empty_center(n10, n11, n20, n21))
+        if(at(n2, 1) != -1)
             solve_center(n10, n11, n20, n21, l - 1, solver);
         
-        if(!empty_center(n11, n12, n21, n22))
+        if(at(n3, 0) != -1)
             solve_center(n11, n12, n21, n22, l - 1, solver);
         
         delete_last(9);
+    }
+    
+    template <class _Solver>
+    void solve_level1(qt_int n0, qt_int n1, qt_int n2, qt_int n3, _Solver& solver) {
+        if(n0 != -1) {
+            solve_single(n0, solver);
+            if(n1 != -1) solve_cells(n0, n1, solver);
+            if(n2 != -1) solve_cells(n0, n2, solver);
+            if(n3 != -1) solve_cells(n0, n3, solver);
+        }
+        
+        if(n1 != -1) {
+            solve_single(n1, solver);
+            if(n2 != -1) solve_cells(n1, n2, solver);
+            if(n3 != -1) solve_cells(n1, n3, solver);
+        }
+        
+        if(n2 != -1) {
+            solve_single(n2, solver);
+            if(n3 != -1) solve_cells(n2, n3, solver);
+        }
+        
+        if(n3 != -1) {
+            solve_single(n3, solver);
+        }
     }
     
     template <class _Solver>
@@ -427,9 +457,12 @@ public:
                     n.y += d;
                 }
             }
+            
+            nodes[i].add(p);
         }
         
         nodes[i].add(ptr);
+        nodes[i].add(p);
     }
 };
 

@@ -26,7 +26,7 @@ struct particle
     
     inline void print() const
     {
-        printf("w: %6.3f, p: %6.3f, %6.3f \n", w, p.x, p.y);
+        printf("w: %.3f, p: %.3f, %.3f \n", w, p.x, p.y);
     }
     
 };
@@ -60,7 +60,6 @@ void simple_solve(particle* parts, int n) {
         }
     }
 }
-
 
 
 void solve_part1(particle* a, particle* b) {
@@ -102,23 +101,22 @@ int main(int argc, const char * argv[]) {
     dots1 = (particle*)malloc(sizeof(particle) * n);
     dots2 = (particle*)malloc(sizeof(particle) * n);
     
-    dots[0].p.set(0.0f, 0.0f);
-    dots[1].p.set(0.0f, 0.5f);
-    
-    vec2 sum;
     for(int i = 0; i < n; ++i) {
         dots[i].p = vec2(randFlt(-k * 0.5f, k * 0.5f), randFlt(-k * 0.5f, k * 0.5f));
-        sum += dots[i].p;
     }
-    
-    sum *= 1.0f/(float)n;
-    sum.print();
     
     memcpy(dots1, dots, sizeof(particle) * n);
     memcpy(dots2, dots, sizeof(particle) * n);
     
+    clocks.push_back(clock());
+    
     for(int i = 0; i < n; ++i) {
         qt.insert_pointer(dots + i, dots[i].p);
+    }
+    
+    clocks.push_back(clock());
+    
+    for(int i = 0; i < n; ++i) {
         hg.insert_pointer(dots2 + i, dots2[i].p);
     }
     
@@ -146,8 +144,11 @@ int main(int argc, const char * argv[]) {
         printf("\n");
     }
     
-    printf("DynamicQuadTree: %.5f ms\n", calc_ms(0));
-    printf("DynamicHashGrid: %.5f ms\n", calc_ms(1));
+    printf("qt i: %.5f ms\n", calc_ms(0));
+    printf("hg i: %.5f ms\n", calc_ms(1));
+    
+    printf("DynamicQuadTree: %.5f ms\n", calc_ms(2));
+    printf("DynamicHashGrid: %.5f ms\n", calc_ms(3));
     printf("%d, %d collisions \n", u1, u2);
     
     free(dots);

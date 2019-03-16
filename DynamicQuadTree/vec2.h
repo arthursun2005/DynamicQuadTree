@@ -9,6 +9,7 @@
 #ifndef vec2_h
 #define vec2_h
 
+
 struct vec2
 {
     float x;
