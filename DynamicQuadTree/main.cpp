@@ -69,7 +69,6 @@ void solve_part1(particle* a, particle* b) {
         float w = weight(d);
         a->w += w;
         b->w += w;
-        ++u1;
     }
 }
 
@@ -80,16 +79,17 @@ void solve_part2(particle* a, particle* b) {
         float w = weight(d);
         a->w += w;
         b->w += w;
-        ++u2;
     }
 }
 
-const int n = 50000;
+const int n = 100000;
 
 inline float calc_ms(int i)
 {
     return 1000.0f * (clocks[i + 1] - clocks[i]) / (float) CLOCKS_PER_SEC;
 }
+
+std::chrono::system_clock sys_clock;
 
 int main(int argc, const char * argv[]) {
     srand((unsigned int)time(0));
@@ -120,13 +120,17 @@ int main(int argc, const char * argv[]) {
         hg.insert_pointer(dots2 + i, dots2[i].p);
     }
     
-    clocks.push_back(clock());
-    
-    qt.solve(solve_part1);
+    int s = 7;
     
     clocks.push_back(clock());
     
-    hg.solve(solve_part2);
+    for(int n = 0; n < s; ++n)
+        qt.solve(solve_part1);
+    
+    clocks.push_back(clock());
+    
+    for(int n = 0; n < s; ++n)
+        hg.solve(solve_part2);
     
     clocks.push_back(clock());
     
@@ -147,8 +151,9 @@ int main(int argc, const char * argv[]) {
     printf("qt i: %.5f ms\n", calc_ms(0));
     printf("hg i: %.5f ms\n", calc_ms(1));
     
-    printf("DynamicQuadTree: %.5f ms\n", calc_ms(2));
-    printf("DynamicHashGrid: %.5f ms\n", calc_ms(3));
+    printf("DynamicQuadTree: %.5f ms\n", calc_ms(2)/(float)s);
+    printf("DynamicHashGrid: %.5f ms\n", calc_ms(3)/(float)s);
+    
     printf("%d, %d collisions \n", u1, u2);
     
     free(dots);
