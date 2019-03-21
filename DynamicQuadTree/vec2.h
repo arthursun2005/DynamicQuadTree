@@ -9,7 +9,6 @@
 #ifndef vec2_h
 #define vec2_h
 
-
 struct vec2
 {
     float x;
@@ -104,7 +103,7 @@ inline vec2 operator * (const vec2& a, const vec2& b)
     return vec2(a.x * b.x, a.y * b.y);
 }
 
-inline vec2 rot(const vec2& a, const vec2& b)
+inline vec2 mul (const vec2& a, const vec2& b)
 {
     return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
 }

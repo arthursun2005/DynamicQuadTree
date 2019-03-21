@@ -31,8 +31,8 @@ struct particle
     
 };
 
-float k = 1000.0f;
-float h = 3.0f;
+float k = 400.0f;
+float h = 1.0f;
 float h2 = h * h;
 
 DynamicQuadTree<particle> qt(h);
@@ -84,7 +84,7 @@ void solve_part2(particle* a, particle* b) {
     }
 }
 
-const int n = 100000;
+const int n = 50000;
 
 inline float calc_ms(int i)
 {

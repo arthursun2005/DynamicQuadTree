@@ -10,31 +10,45 @@
 #define DynamicHashGrid_h
 
 #include <vector>
-#include "vec2.h"
+#include "AABB.h"
 
 struct _gridHasher
 {
     inline size_t operator () (int x, int y) const
     {
-        return (x << 8) ^ (y << 0);
+        return ((x << 8) * 31) ^ y;
     }
 };
 
-template <class T, int N = 1048576, class _Hasher = _gridHasher>
+template <class T, int N = 16777216, class _Hasher = _gridHasher>
 class DynamicHashGrid
 {
     
 protected:
     
-    struct Node
+    struct Pptr
     {
-        Node(T* data, const vec2& p) : data(data), p(p) {}
-        T* data;
+        T* ptr;
         vec2 p;
     };
     
+    struct Node
+    {
+        std::vector<Pptr> data;
+        AABB aabb;
+        
+        inline void add(T* ptr, const vec2& _p) {
+            data.push_back(Pptr{ptr, _p});
+        }
+        
+        inline int count() const
+        {
+            return (int)data.size();
+        }
+    };
+    
     std::vector<Node> data;
-    std::vector<int>* grid[N];
+    int grid[N];
     _Hasher hasher;
     float h;
     
@@ -43,18 +57,22 @@ public:
     bool null;
     
     DynamicHashGrid(float h) : h(h), null(true) {
-        memset(grid, 0, N * sizeof(std::vector<T*>*));
+        for(int i = 0; i < N; ++i) {
+            grid[i] = -1;
+        }
         data.reserve(1024);
     }
     
     ~DynamicHashGrid() {
         for(int i = 0; i < N; ++i) {
-            if(grid[i]) delete grid[i];
         }
     }
     
     inline void clear() {
         data.clear();
+        for(int i = 0; i < N; ++i) {
+            grid[i] = -1;
+        }
     }
     
     template <class _Solver>
@@ -72,37 +90,44 @@ public:
         size_t hash;
         
         for(Node& x : data) {
-            int ix = x.p.x/h;
-            int iy = x.p.y/h;
-            for(int i = 0; i < nk; i += 2) {
-                hash = hasher(ix + k[i], iy + k[i + 1]);
-                std::vector<int>* cell = grid[hash%N];
-                if(cell == 0) continue;
-                for(int& j : *cell) {
-                    if(j >= data.size()) break;
-                    vec2& e = data[j].p;
-                    if(e.y > x.p.y || (e.y >= x.p.y && e.x < x.p.x)) {
-                        solver(x.data, data[j].data);
+            int xs = x.count();
+            for(int w = 0; w < xs; ++w) {
+                vec2& p = x.data[w].p;
+                int ix = p.x/h;
+                int iy = p.y/h;
+                for(int i = 0; i < nk; i += 2) {
+                    hash = hasher(ix + k[i], iy + k[i + 1]);
+                    int& cell = grid[hash%N];
+                    if(cell == -1) continue;
+                    if(!data[cell].aabb.covers(p, h)) continue;
+                    int cs = data[cell].count();
+                    for(int q = 0; q < cs; ++q) {
+                        vec2& e = data[cell].data[q].p;
+                        if(e.y > p.y || (e.y >= p.y && e.x < p.x))
+                            solver(x.data[w].ptr, data[cell].data[q].ptr);
                     }
                 }
             }
         }
-        
     }
     
     void insert_pointer(T* ptr, const vec2& p)
     {
-        
         size_t hash = hasher(p.x/h, p.y/h);
         
-        std::vector<int>*& k = grid[hash%N];
+        int& k = grid[hash%N];
         
-        if(k == 0)
-            k = new std::vector<int>;
-        
-        k->push_back((int)data.size());
-        
-        data.push_back(Node(ptr, p));
+        if(k == -1) {
+            Node n;
+            k = (int)data.size();
+            n.aabb.set(p);
+            n.add(ptr, p);
+            data.push_back(n);
+        }else{
+            Node& n = data[k];
+            n.aabb.add(p);
+            n.add(ptr, p);
+        }
     }
 };
 

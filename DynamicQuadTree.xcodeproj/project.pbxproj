@@ -23,6 +23,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		8E30E5EC223DC5D7004F9CD5 /* AABB.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AABB.h; sourceTree = "<group>"; };
 		8E3AF48622347EA800520604 /* DynamicHashGrid.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DynamicHashGrid.h; sourceTree = "<group>"; };
 		8E3AF487223481E700520604 /* vec2.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vec2.h; sourceTree = "<group>"; };
 		8E6F139B2233B395000D9FCB /* DynamicQuadTree */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = DynamicQuadTree; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -63,6 +64,7 @@
 				8E6F139E2233B395000D9FCB /* main.cpp */,
 				8E6F13A52233B5E9000D9FCB /* DynamicQuadTree.h */,
 				8E3AF48622347EA800520604 /* DynamicHashGrid.h */,
+				8E30E5EC223DC5D7004F9CD5 /* AABB.h */,
 				8E3AF487223481E700520604 /* vec2.h */,
 			);
 			path = DynamicQuadTree;
