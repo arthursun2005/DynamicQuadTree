@@ -53,28 +53,26 @@ struct AABB
         return p.x >= lowerBound.x && p.y >= lowerBound.y && p.x <= upperBound.x && p.y <= upperBound.y;
     }
     
-    bool covers(const vec2& p, const vec2& t) const
+    bool covers(const vec2& p, float r) const
     {
-        return p.x >= lowerBound.x - t.x && p.y >= lowerBound.y - t.y && p.x <= upperBound.x + t.x && p.y <= upperBound.y + t.y;
-    }
-    
-    bool touches(const AABB& k) const
-    {
-        vec2 d1 = k.lowerBound - upperBound;
-        vec2 d2 = lowerBound - k.upperBound;
-        
-        return d1.x <= 0.0f && d1.y <= 0.0f && d2.x <= 0.0f && d2.y <= 0.0f;
-    }
-    
-    bool touches(const AABB& k, float r) const
-    {
-        vec2 d1 = k.lowerBound - upperBound - r;
-        vec2 d2 = lowerBound - k.upperBound - r;
-        
-        return d1.x <= 0.0f && d1.y <= 0.0f && d2.x <= 0.0f && d2.y <= 0.0f;
+        return p.x >= lowerBound.x - r && p.y >= lowerBound.y - r && p.x <= upperBound.x + r && p.y <= upperBound.y + r;
     }
     
 };
+
+inline bool touches(const AABB& a, const AABB& b)
+{
+    vec2 d1 = b.lowerBound - a.upperBound;
+    vec2 d2 = a.lowerBound - b.upperBound;
+    return d1.x <= 0.0f && d1.y <= 0.0f && d2.x <= 0.0f && d2.y <= 0.0f;
+}
+
+inline bool touches(const AABB& a, const AABB& b, float r)
+{
+    vec2 d1 = b.lowerBound - a.upperBound;
+    vec2 d2 = a.lowerBound - b.upperBound;
+    return d1.x <= r && d1.y <= r && d2.x <= r && d2.y <= r;
+}
 
 float distSq(const AABB& a, const AABB& b)
 {

@@ -31,7 +31,7 @@ struct particle
     
 };
 
-float k = 400.0f;
+float k = 300.0f;
 float h = 1.0f;
 float h2 = h * h;
 
@@ -62,20 +62,12 @@ void simple_solve(particle* parts, int n) {
 }
 
 
-void solve_part1(particle* a, particle* b) {
+void solve_part(particle* a, particle* b) {
+    ++u1;
     if(a == b) return;
     vec2 d = b->p - a->p;
     if(d.magSq() <= h2) {
-        float w = weight(d);
-        a->w += w;
-        b->w += w;
-    }
-}
-
-void solve_part2(particle* a, particle* b) {
-    if(a == b) return;
-    vec2 d = b->p - a->p;
-    if(d.magSq() <= h2) {
+        ++u2;
         float w = weight(d);
         a->w += w;
         b->w += w;
@@ -89,8 +81,6 @@ inline float calc_ms(int i)
     return 1000.0f * (clocks[i + 1] - clocks[i]) / (float) CLOCKS_PER_SEC;
 }
 
-std::chrono::system_clock sys_clock;
-
 int main(int argc, const char * argv[]) {
     srand((unsigned int)time(0));
     particle *dots;
@@ -101,7 +91,9 @@ int main(int argc, const char * argv[]) {
     dots1 = (particle*)malloc(sizeof(particle) * n);
     dots2 = (particle*)malloc(sizeof(particle) * n);
     
-    for(int i = 0; i < n; ++i) {
+    dots[0].p.set(10000000.0f, 0.0f);
+    
+    for(int i = 1; i < n; ++i) {
         dots[i].p = vec2(randFlt(-k * 0.5f, k * 0.5f), randFlt(-k * 0.5f, k * 0.5f));
     }
     
@@ -120,17 +112,24 @@ int main(int argc, const char * argv[]) {
         hg.insert_pointer(dots2 + i, dots2[i].p);
     }
     
-    int s = 7;
+    int s = 4;
     
     clocks.push_back(clock());
     
     for(int n = 0; n < s; ++n)
-        qt.solve(solve_part1);
+        qt.solve(solve_part);
+    
+    printf("qt e: %.5f \n", u2/(float)u1);
+    
+    u1 = 0;
+    u2 = 0;
     
     clocks.push_back(clock());
     
     for(int n = 0; n < s; ++n)
-        hg.solve(solve_part2);
+        hg.solve(solve_part);
+    
+    printf("hg e: %.5f \n", u2/(float)u1);
     
     clocks.push_back(clock());
     
@@ -154,7 +153,7 @@ int main(int argc, const char * argv[]) {
     printf("DynamicQuadTree: %.5f ms\n", calc_ms(2)/(float)s);
     printf("DynamicHashGrid: %.5f ms\n", calc_ms(3)/(float)s);
     
-    printf("%d, %d collisions \n", u1, u2);
+    //printf("%d, %d collisions \n", u1, u2);
     
     free(dots);
     free(dots1);

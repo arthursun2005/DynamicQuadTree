@@ -27,16 +27,12 @@ protected:
         
         qt_int children[4];
         
-        bool null;
-        
         inline const qt_int& operator [] (int i) const { return children[i]; }
         inline qt_int& operator [] (int i) { return children[i]; }
         
         qt_int count;
         qt_int capacity;
-        
-        AABB aabb;
-        
+                
         Node() {}
         
         Node(const Node& x) = delete;
@@ -46,7 +42,6 @@ protected:
         inline void init() {
             capacity = 0;
             count = 0;
-            null = true;
         }
         
         inline void free() {
@@ -73,16 +68,6 @@ protected:
             if(count >= capacity)
                 grow();
             data[count++] = ptr;
-        }
-        
-        inline void add(const vec2& p)
-        {
-            if(null) {
-                aabb.set(p);
-                null = false;
-            }else{
-                aabb.add(p);
-            }
         }
         
         inline T** begin()
@@ -114,7 +99,8 @@ protected:
     
     inline bool should_solve(qt_int a, qt_int b) const
     {
-        return nodes[a].aabb.touches(nodes[b].aabb, h);
+        //return touches(nodes[a].aabb, nodes[b].aabb, h);
+        return true;
     }
     
     float h;
@@ -377,10 +363,10 @@ public:
         if(n3 != -1) {
             solve_node(nodes[n3][0], nodes[n3][1], nodes[n3][2], nodes[n3][3], l - 1, solver);
             
-            if(n1 != -1 && should_solve(n3, n1))
+            if(n1 != -1 && should_solve(n1, n3))
                 solve_node_v(nodes[n1][2], nodes[n1][3], nodes[n3][0], nodes[n3][1], l - 1, solver);
             
-            if(n2 != -1 && should_solve(n3, n1))
+            if(n2 != -1 && should_solve(n2, n3))
                 solve_node_h(nodes[n2][1], nodes[n3][0], nodes[n2][3], nodes[n3][2], l - 1, solver);
         }
         
@@ -407,8 +393,6 @@ public:
         vec2 n = p;
         for(int _n = 0; _n < level; ++_n) {
             d *= 0.5f;
-            
-            nodes[i].add(p);
             
             if(n.x >= 0.0f) {
                 if(n.y >= 0.0f) {
@@ -443,7 +427,6 @@ public:
         }
         
         nodes[i].add(ptr);
-        nodes[i].add(p);
     }
 };
 
